@@ -1,30 +1,27 @@
-// server.js
+// backend/server.js
 const express = require("express");
-const mongoose = require("mongoose");
+const connectDB = require("./config/db");
+const path = require("path");
 const cors = require("cors");
-require("dotenv").config();
+require("dotenv").config(); // <-- Ligne ajoutée ici pour charger les variables d'environnement
 
 const app = express();
 
-// Middleware
+// Connect Database
+connectDB();
+
+// Init Middleware
+app.use(express.json({ extended: false }));
 app.use(cors());
-app.use(express.json());
 
-// Connexion à la base de données
-mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log("MongoDB connected successfully"))
-  .catch((err) => console.error("MongoDB connection error:", err));
+// Définir le dossier des images en tant que répertoire statique
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// Routes de l'API
+// Define Routes
+app.use("/api/users", require("./routes/users"));
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/workshops", require("./routes/workshops"));
 app.use("/api/admin", require("./routes/admin"));
-app.use("/api/users", require("./routes/users")); // <-- Cette ligne est essentielle
 
-// Lancement du serveur
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
