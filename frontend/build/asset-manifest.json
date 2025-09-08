@@ -1,0 +1,22 @@
+{
+  "files": {
+    "main.js": "/static/js/main.2a6c22e0.js",
+    "static/js/239.ad40150f.chunk.js": "/static/js/239.ad40150f.chunk.js",
+    "static/js/977.b584b783.chunk.js": "/static/js/977.b584b783.chunk.js",
+    "static/js/455.e3b574ea.chunk.js": "/static/js/455.e3b574ea.chunk.js",
+    "static/media/forum-banner.jpg": "/static/media/forum-banner.18c6f72bb54b8b6b04c1.jpg",
+    "static/media/logo4.jpg": "/static/media/logo4.b818452ec2040a928361.jpg",
+    "static/media/logo5.jpg": "/static/media/logo5.dd6fb06448778b2bd6d8.jpg",
+    "static/media/logo2.jpg": "/static/media/logo2.6aed0013b900d5e2fe42.jpg",
+    "static/media/logo3.jpg": "/static/media/logo3.7a21ab6ca3406a267a2c.jpg",
+    "static/media/logo1.jpg": "/static/media/logo1.ca143dc23bc1210cad40.jpg",
+    "index.html": "/index.html",
+    "main.2a6c22e0.js.map": "/static/js/main.2a6c22e0.js.map",
+    "239.ad40150f.chunk.js.map": "/static/js/239.ad40150f.chunk.js.map",
+    "977.b584b783.chunk.js.map": "/static/js/977.b584b783.chunk.js.map",
+    "455.e3b574ea.chunk.js.map": "/static/js/455.e3b574ea.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/js/main.2a6c22e0.js"
+  ]
+}
