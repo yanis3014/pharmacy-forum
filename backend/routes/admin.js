@@ -8,21 +8,17 @@ const Workshop = require("../models/Workshop");
 const User = require("../models/User");
 const multer = require("multer");
 const path = require("path");
+const sendEmail = require("../utils/sendEmail");
 
 const adminAuth = [auth, admin];
-// Configurer Multer pour le téléchargement de fichiers
+
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
-  },
+  destination: (req, file, cb) => cb(null, "uploads/"),
+  filename: (req, file, cb) =>
+    cb(null, Date.now() + path.extname(file.originalname)),
 });
 const upload = multer({ storage: storage });
 
-// @route   POST /api/admin/workshops
-// @desc    Create a new workshop
 router.post(
   "/workshops",
   [adminAuth, upload.single("image")],
@@ -37,13 +33,10 @@ router.post(
         capacity,
         date,
       };
-      // N'ajoute le leader que si le champ n'est pas vide
-      if (leader) {
-        newWorkshopData.leader = leader;
-      }
+      if (leader) newWorkshopData.leader = leader;
       const newWorkshop = new Workshop(newWorkshopData);
-      const workshop = await newWorkshop.save();
-      res.status(201).json(workshop);
+      await newWorkshop.save();
+      res.status(201).json(newWorkshop);
     } catch (err) {
       console.error("Erreur lors de la création de l'atelier:", err.message);
       res.status(500).send("Server Error");
@@ -51,64 +44,56 @@ router.post(
   }
 );
 
-// @route   PUT /api/admin/workshops/:id
-// @desc    Update a workshop
 router.put(
   "/workshops/:id",
   [adminAuth, upload.single("image")],
   async (req, res) => {
     const { title, description, capacity, leader, date } = req.body;
-    let workshopFields = { title, description, capacity, date };
 
+    let workshopFields = { title, description, capacity, date };
     if (req.file) {
       workshopFields.imageUrl = `/uploads/${req.file.filename}`;
     }
-    // N'ajoute le leader que si le champ n'est pas vide
+
+    let updateOperation = { $set: workshopFields };
+
+    // Gérer la mise à jour du leader
     if (leader) {
-      workshopFields.leader = leader;
+      updateOperation.$set.leader = leader;
+    } else {
+      // Si le champ leader est vide, on le supprime de l'atelier
+      updateOperation.$unset = { leader: "" };
     }
 
     try {
-      let workshop = await Workshop.findByIdAndUpdate(
+      const workshop = await Workshop.findByIdAndUpdate(
         req.params.id,
-        { $set: workshopFields },
+        updateOperation,
         { new: true }
       );
       if (!workshop) return res.status(404).json({ msg: "Workshop not found" });
       res.json(workshop);
     } catch (err) {
-      console.error(err.message);
+      console.error("Erreur lors de la mise à jour de l'atelier:", err.message);
       res.status(500).send("Server Error");
     }
   }
 );
-
-// @route   DELETE /api/admin/workshops/:id
-// @desc    Delete a workshop
 router.delete("/workshops/:id", adminAuth, async (req, res) => {
   try {
-    const workshop = await Workshop.findByIdAndDelete(req.params.id);
-    if (!workshop) return res.status(404).json({ msg: "Workshop not found" });
+    await Workshop.findByIdAndDelete(req.params.id);
     res.json({ msg: "Workshop removed successfully" });
   } catch (err) {
-    console.error(err.message);
     res.status(500).send("Server Error");
   }
 });
 
-// @route   GET /api/admin/users
-// @desc    Get all users with filtering
 router.get("/users", adminAuth, async (req, res) => {
   try {
     const { profession, role, search } = req.query;
     let filter = { isVerified: true };
-
-    if (profession) {
-      filter.profession = profession;
-    }
-    if (role) {
-      filter.role = role;
-    }
+    if (profession) filter.profession = profession;
+    if (role) filter.role = role;
     if (search) {
       filter.$or = [
         { firstName: { $regex: search, $options: "i" } },
@@ -116,7 +101,6 @@ router.get("/users", adminAuth, async (req, res) => {
         { email: { $regex: search, $options: "i" } },
       ];
     }
-
     const users = await User.find(filter).select("-password");
     res.json(users);
   } catch (err) {
@@ -124,31 +108,25 @@ router.get("/users", adminAuth, async (req, res) => {
   }
 });
 
-router.get("/users/role/:role", adminAuth, async (req, res) => {
-  try {
-    const users = await User.find({ role: req.params.role }).select(
-      "-password"
-    );
-    res.json(users);
-  } catch (err) {
-    res.status(500).send("Server Error");
-  }
-});
 router.get("/users/:id", adminAuth, async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select("-password");
     if (!user) return res.status(404).json({ msg: "User not found" });
     const registeredWorkshops = await Workshop.find({
       "registrations.user": user._id,
-    });
+    }).select("title");
     const userWithWorkshops = user.toObject();
     userWithWorkshops.registeredWorkshops = registeredWorkshops;
     res.json(userWithWorkshops);
   } catch (err) {
-    console.error(err.message);
+    console.error(
+      `Erreur sur GET /api/admin/users/${req.params.id}:`,
+      err.message
+    );
     res.status(500).send("Server Error");
   }
 });
+
 router.put("/users/:id/role", adminAuth, async (req, res) => {
   const { role } = req.body;
   try {
@@ -160,13 +138,10 @@ router.put("/users/:id/role", adminAuth, async (req, res) => {
     if (!user) return res.status(404).json({ msg: "User not found" });
     res.json(user);
   } catch (err) {
-    console.error(err.message);
     res.status(500).send("Server Error");
   }
 });
 
-// @route   POST /api/admin/users
-// @desc    Admin creates a new user
 router.post("/users", adminAuth, async (req, res) => {
   const { firstName, lastName, email, password, role, ...otherFields } =
     req.body;
@@ -176,20 +151,17 @@ router.post("/users", adminAuth, async (req, res) => {
       return res
         .status(400)
         .json({ msg: "Un utilisateur avec cet email existe déjà" });
-
     user = new User({
       firstName,
       lastName,
       email,
       password,
       role,
-      isVerified: true, // L'utilisateur est vérifié par défaut
+      isVerified: true,
       ...otherFields,
     });
-
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(password, salt);
-
     await user.save();
     res.status(201).json(user);
   } catch (err) {
@@ -200,53 +172,69 @@ router.post("/users", adminAuth, async (req, res) => {
 
 router.delete("/users/:id", adminAuth, async (req, res) => {
   try {
-    const user = await User.findByIdAndDelete(req.params.id);
-    if (!user) return res.status(404).json({ msg: "User not found" });
+    await User.findByIdAndDelete(req.params.id);
     await Workshop.updateMany(
       {},
       { $pull: { registrations: { user: req.params.id } } }
     );
     res.json({ msg: "User deleted successfully" });
   } catch (err) {
-    console.error(err.message);
     res.status(500).send("Server Error");
   }
 });
+
 router.put("/registrations/confirm", adminAuth, async (req, res) => {
   const { workshopId, userId } = req.body;
   try {
     const workshop = await Workshop.findById(workshopId);
-    if (!workshop) return res.status(404).json({ msg: "Workshop not found" });
+    const user = await User.findById(userId);
+    if (!workshop || !user)
+      return res
+        .status(404)
+        .json({ msg: "Atelier ou utilisateur non trouvé." });
     const registration = workshop.registrations.find((reg) =>
       reg.user.equals(userId)
     );
     if (!registration)
-      return res.status(404).json({ msg: "Registration not found" });
+      return res.status(404).json({ msg: "Inscription non trouvée." });
     registration.status = "confirmed";
     await workshop.save();
+    const message = `<h1>Confirmation d'inscription</h1><p>Bonjour ${user.firstName},</p><p>Nous avons le plaisir de vous confirmer votre inscription à l'atelier "${workshop.title}".</p><p>Nous vous attendons avec impatience !</p>`;
+    await sendEmail({
+      email: user.email,
+      subject: `Confirmation de votre inscription à l'atelier : ${workshop.title}`,
+      message,
+    });
     res.json(workshop);
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Server Error");
   }
 });
-// @route   GET /api/admin/stats
-// @desc    Get detailed statistics
+
+// === ROUTE DES STATISTIQUES CORRIGÉE ===
 router.get("/stats", adminAuth, async (req, res) => {
   try {
     const workshops = await Workshop.find();
-    const totalUsers = await User.countDocuments({ isVerified: true });
+    const totalVerifiedUsers = await User.countDocuments({ isVerified: true });
+    const totalUnverifiedUsers = await User.countDocuments({
+      isVerified: false,
+    });
 
-    // Statistiques par profession
     const usersByProfession = await User.aggregate([
       { $match: { isVerified: true } },
       { $group: { _id: "$profession", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
     ]);
 
     const workshopDetails = workshops.map((ws) => ({
       name: ws.title,
       confirmed: (ws.registrations || []).filter(
         (r) => r.status === "confirmed"
+      ).length,
+      // Ajout du comptage des pré-inscrits
+      preRegistered: (ws.registrations || []).filter(
+        (r) => r.status === "pre-registered"
       ).length,
       waiting: (ws.registrations || []).filter(
         (r) => r.status === "waiting_list"
@@ -255,7 +243,8 @@ router.get("/stats", adminAuth, async (req, res) => {
     }));
 
     const stats = {
-      totalUsers,
+      totalVerifiedUsers,
+      totalUnverifiedUsers,
       totalWorkshops: workshops.length,
       usersByProfession,
       workshopDetails,

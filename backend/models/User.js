@@ -1,6 +1,6 @@
 // backend/models/User.js
 const mongoose = require("mongoose");
-const crypto = require("crypto"); // Ajoute cette ligne
+const crypto = require("crypto");
 
 const UserSchema = new mongoose.Schema({
   firstName: { type: String, required: true },
@@ -9,6 +9,7 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   phone: { type: String, required: true },
   profession: { type: String, required: true },
+  professionOther: { type: String, required: false }, // CHAMP AJOUTÉ
   grade: { type: String, required: false },
   studentLevel: { type: String, required: false },
   institution: { type: String, required: false },
@@ -17,24 +18,19 @@ const UserSchema = new mongoose.Schema({
     enum: ["participant", "workshop_leader", "admin"],
     default: "participant",
   },
-  // --- NOUVEAUX CHAMPS ---
   isVerified: {
     type: Boolean,
     default: false,
   },
   emailVerificationToken: String,
-  // --------------------
 });
 
-// Méthode pour générer le token de vérification
 UserSchema.methods.getEmailVerificationToken = function () {
   const verificationToken = crypto.randomBytes(20).toString("hex");
-
   this.emailVerificationToken = crypto
     .createHash("sha256")
     .update(verificationToken)
     .digest("hex");
-
   return verificationToken;
 };
 

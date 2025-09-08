@@ -43,23 +43,20 @@ router.post(
       password,
       phone,
       profession,
+      professionOther, // Ajout de professionOther
       grade,
       studentLevel,
       institution,
     } = req.body;
+    // ===================================
+
     try {
       let user = await User.findOne({ email });
       if (user) {
-        // --- LOG DE DÉBOGAGE ---
-        console.log("Erreur : Un utilisateur avec cet email existe déjà.");
-        // -----------------------
         return res.status(400).json({ msg: "User already exists" });
       }
 
-      // --- LOG DE DÉBOGAGE ---
-      console.log("Création d'un nouvel objet utilisateur...");
-      // -----------------------
-
+      // === CRÉATION DE L'UTILISATEUR MISE À JOUR ===
       user = new User({
         firstName,
         lastName,
@@ -67,10 +64,13 @@ router.post(
         password,
         phone,
         profession,
+        professionOther, // Ajout de professionOther
         grade,
         studentLevel,
         institution,
       });
+      // ===========================================
+
       const salt = await bcrypt.genSalt(10);
       user.password = await bcrypt.hash(password, salt);
       const verificationToken = user.getEmailVerificationToken();
