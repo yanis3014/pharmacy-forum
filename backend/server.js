@@ -12,11 +12,7 @@ connectDB();
 
 // Init Middleware
 app.use(express.json({ extended: false }));
-app.use(
-  cors({
-    origin: "https://pharmacy-forum-j21t.vercel.app",
-  })
-);
+app.use(cors());
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
