@@ -22,16 +22,6 @@ app.use("/api/auth", require("./routes/auth"));
 app.use("/api/workshops", require("./routes/workshops"));
 app.use("/api/admin", require("./routes/admin"));
 
-// === AJOUTER CE BLOC POUR LA PRODUCTION ===
-if (process.env.NODE_ENV === "production") {
-  // Servir le dossier build du frontend
-  app.use(express.static(path.join(__dirname, "../frontend/build")));
-
-  // Pour toutes les autres requêtes, renvoyer le fichier index.html du frontend
-  app.get("*", (req, res) => {
-    res.sendFile(path.resolve(__dirname, "../frontend", "build", "index.html"));
-  });
-}
 // =======================================
 
 const PORT = process.env.PORT || 5000;
