@@ -1,0 +1,25 @@
+{
+  "name": "pharmacy-forum",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "backend": "npm --prefix backend start",
+    "frontend": "npm --prefix frontend start",
+    "dev": "concurrently \"npm run backend\" \"npm run frontend\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yanis3014/pharmacy-forum.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yanis3014/pharmacy-forum/issues"
+  },
+  "homepage": "https://github.com/yanis3014/pharmacy-forum#readme",
+  "description": "",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
