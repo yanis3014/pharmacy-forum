@@ -15,7 +15,7 @@ import {
   Box,
   Typography,
 } from "@mui/material";
-import axios from "axios";
+import api from "../../api";
 
 const WorkshopForm = ({ open, handleClose, onSave, editingWorkshop }) => {
   const [formData, setFormData] = useState({});
@@ -44,12 +44,9 @@ const WorkshopForm = ({ open, handleClose, onSave, editingWorkshop }) => {
   useEffect(() => {
     const fetchLeaders = async () => {
       try {
-        const res = await axios.get(
-          "http://localhost:5000/api/admin/users?role=workshop_leader",
-          {
-            headers: { "x-auth-token": token },
-          }
-        );
+        const res = await api.get("/admin/users?role=workshop_leader", {
+          headers: { "x-auth-token": token },
+        });
         setLeaders(res.data);
       } catch (err) {
         console.error("Erreur lors de la récupération des leaders", err);

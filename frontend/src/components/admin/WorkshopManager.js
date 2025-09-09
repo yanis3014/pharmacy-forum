@@ -21,7 +21,7 @@ import {
   Avatar,
   Chip,
 } from "@mui/material";
-import axios from "axios";
+import api from "../../api"; // CORRECT : Importation de l'instance centralisée
 import WorkshopForm from "./WorkshopForm";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -34,31 +34,31 @@ const WorkshopManager = () => {
   const [registrations, setRegistrations] = useState([]);
   const [openRegistrationsModal, setOpenRegistrationsModal] = useState(false);
   const [currentWorkshop, setCurrentWorkshop] = useState(null);
-  const token = localStorage.getItem("token");
 
   const fetchWorkshops = useCallback(async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/workshops", {
-        headers: { "x-auth-token": token },
-      });
+      // CORRIGÉ : Plus besoin de headers, l'intercepteur s'en charge
+      const res = await api.get("/workshops");
       setWorkshops(res.data);
     } catch (err) {
       console.error("Failed to fetch workshops", err);
     }
-  }, [token]);
+  }, []);
 
   useEffect(() => {
     fetchWorkshops();
   }, [fetchWorkshops]);
 
   const handleSave = async (formData, id) => {
-    const url = id ? `/api/admin/workshops/${id}` : "/api/admin/workshops";
+    // CORRIGÉ : On utilise juste le chemin relatif, la base URL est dans api.js
+    const url = id ? `/admin/workshops/${id}` : "/admin/workshops";
     const method = id ? "put" : "post";
     try {
-      await axios[method](`http://localhost:5000${url}`, formData, {
+      // CORRIGÉ : Plus de "localhost" et plus de headers manuels
+      await api[method](url, formData, {
+        // On garde juste ce header spécifique pour l'upload de fichiers
         headers: {
           "Content-Type": "multipart/form-data",
-          "x-auth-token": token,
         },
       });
       alert(`Atelier ${id ? "mis à jour" : "créé"} avec succès !`);
@@ -76,9 +76,8 @@ const WorkshopManager = () => {
   const handleDeleteWorkshop = async (id) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer cet atelier ?")) {
       try {
-        await axios.delete(`http://localhost:5000/api/admin/workshops/${id}`, {
-          headers: { "x-auth-token": token },
-        });
+        // CORRIGÉ : Plus de headers manuels
+        await api.delete(`/admin/workshops/${id}`);
         alert("Atelier supprimé avec succès.");
         fetchWorkshops();
       } catch (err) {
@@ -94,10 +93,8 @@ const WorkshopManager = () => {
 
   const handleViewRegistrations = async (workshop) => {
     try {
-      const res = await axios.get(
-        `http://localhost:5000/api/workshops/${workshop._id}/registrations`,
-        { headers: { "x-auth-token": token } }
-      );
+      // CORRIGÉ : Plus de headers manuels
+      const res = await api.get(`/workshops/${workshop._id}/registrations`);
       setCurrentWorkshop(workshop);
       setRegistrations(res.data);
       setOpenRegistrationsModal(true);
@@ -106,27 +103,20 @@ const WorkshopManager = () => {
     }
   };
 
-  // === NOUVELLE FONCTION DE CONFIRMATION ===
   const handleConfirmPayment = async (workshopId, userId) => {
     try {
-      await axios.put(
-        "http://localhost:5000/api/admin/registrations/confirm",
-        { workshopId, userId },
-        { headers: { "x-auth-token": token } }
-      );
+      // CORRIGÉ : Plus de headers manuels
+      await api.put("/admin/registrations/confirm", { workshopId, userId });
       alert("Paiement confirmé et e-mail envoyé !");
       // Rafraîchir la liste pour voir le changement de statut
-      const res = await axios.get(
-        `http://localhost:5000/api/workshops/${workshopId}/registrations`,
-        { headers: { "x-auth-token": token } }
-      );
+      const res = await api.get(`/workshops/${workshopId}/registrations`);
       setRegistrations(res.data);
-      fetchWorkshops(); // Met aussi à jour le nombre d'inscrits dans le tableau principal
+      fetchWorkshops();
     } catch (err) {
       alert(err.response?.data?.msg || "Erreur lors de la confirmation.");
     }
   };
-  // ========================================
+
   return (
     <Box>
       <Button
@@ -206,7 +196,6 @@ const WorkshopManager = () => {
         </Table>
       </TableContainer>
 
-      {/* === MODAL DES INSCRITS AMÉLIORÉ AVEC BOUTON === */}
       <Dialog
         open={openRegistrationsModal}
         onClose={() => setOpenRegistrationsModal(false)}
@@ -279,7 +268,6 @@ const WorkshopManager = () => {
           )}
         </DialogContent>
       </Dialog>
-      {/* ============================================= */}
     </Box>
   );
 };

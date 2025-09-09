@@ -14,7 +14,7 @@ import {
   Grid,
   Paper,
 } from "@mui/material";
-import axios from "axios";
+import api from "../api";
 
 const UserProfile = () => {
   const [formData, setFormData] = useState({
@@ -35,7 +35,7 @@ const UserProfile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/users/profile", {
+        const res = await api.get("/users/profile", {
           headers: { "x-auth-token": token },
         });
         setFormData({
@@ -64,7 +64,7 @@ const UserProfile = () => {
     setError("");
     setSuccess("");
     try {
-      await axios.put("http://localhost:5000/api/users/profile", formData, {
+      await api.put("/users/profile", formData, {
         headers: { "x-auth-token": token },
       });
       setSuccess("Profil mis à jour avec succès !");

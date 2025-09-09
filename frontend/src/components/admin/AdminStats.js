@@ -19,7 +19,7 @@ import ScienceIcon from "@mui/icons-material/Science";
 import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
 import SchoolIcon from "@mui/icons-material/School";
 import WorkIcon from "@mui/icons-material/Work";
-import axios from "axios";
+import api from "../../api";
 
 const StatCard = ({ title, value, icon, color = "primary.main" }) => (
   <Paper
@@ -53,7 +53,7 @@ const AdminStats = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/admin/stats", {
+        const res = await api.get("/admin/stats", {
           headers: { "x-auth-token": token },
         });
         setStats(res.data);

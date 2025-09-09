@@ -8,7 +8,7 @@ import {
   Box,
   Alert,
 } from "@mui/material";
-import axios from "axios";
+import api from "../api";
 import { useNavigate } from "react-router-dom";
 
 const Login = () => {
@@ -22,10 +22,7 @@ const Login = () => {
   const onSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/auth/login",
-        formData
-      );
+      const res = await api.post("/auth/login", formData);
       localStorage.setItem("token", res.data.token);
       navigate("/dashboard");
     } catch (err) {

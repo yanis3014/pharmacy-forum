@@ -16,7 +16,7 @@ import ScienceIcon from "@mui/icons-material/Science";
 import PersonIcon from "@mui/icons-material/Person";
 import PeopleIcon from "@mui/icons-material/People";
 import EventIcon from "@mui/icons-material/Event"; // Importer l'icône
-import axios from "axios";
+import api from "../api";
 import { jwtDecode } from "jwt-decode";
 
 const ParticipantDashboard = () => {
@@ -36,10 +36,9 @@ const ParticipantDashboard = () => {
 
     const fetchRegistrations = async () => {
       try {
-        const res = await axios.get(
-          "http://localhost:5000/api/workshops/my-registrations",
-          { headers: { "x-auth-token": token } }
-        );
+        const res = await api.get("/workshops/my-registrations", {
+          headers: { "x-auth-token": token },
+        });
         setMyRegistrations(res.data);
       } catch (err) {
         setError("Erreur lors de la récupération de vos inscriptions.");
@@ -55,10 +54,9 @@ const ParticipantDashboard = () => {
       window.confirm("Êtes-vous sûr de vouloir annuler votre inscription ?")
     ) {
       try {
-        await axios.delete(
-          `http://localhost:5000/api/workshops/${workshopId}/unregister`,
-          { headers: { "x-auth-token": token } }
-        );
+        await api.delete(`/workshops/${workshopId}/unregister`, {
+          headers: { "x-auth-token": token },
+        });
         alert("Votre inscription a bien été annulée.");
         window.location.reload();
       } catch (err) {

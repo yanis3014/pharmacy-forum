@@ -1,7 +1,7 @@
 // frontend/src/pages/VerifyEmail.js
 import React, { useEffect, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import {
   Container,
   Typography,
@@ -26,9 +26,7 @@ const VerifyEmail = () => {
         return;
       }
       try {
-        const res = await axios.get(
-          `http://localhost:5000/api/auth/verify-email?token=${token}`
-        );
+        const res = await api.get(`/auth/verify-email?token=${token}`);
         setMessage(res.data.msg);
       } catch (err) {
         setError(err.response?.data?.msg || "Erreur lors de la vérification.");

@@ -12,7 +12,7 @@ import {
   Button,
   Chip,
 } from "@mui/material";
-import axios from "axios";
+import api from "../../api";
 
 const RegistrationManager = ({ open, handleClose, workshop }) => {
   const [registrations, setRegistrations] = useState([]);
@@ -29,8 +29,8 @@ const RegistrationManager = ({ open, handleClose, workshop }) => {
 
   const handleConfirm = async (userId) => {
     try {
-      await axios.put(
-        "http://localhost:5000/api/admin/registrations/confirm",
+      await api.put(
+        "/admin/registrations/confirm",
         { workshopId: workshop._id, userId },
         { headers: { "x-auth-token": token } }
       );

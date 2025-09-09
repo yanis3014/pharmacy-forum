@@ -13,7 +13,7 @@ import {
   InputLabel,
   Grid,
 } from "@mui/material";
-import axios from "axios";
+import api from "../api";
 import { useNavigate } from "react-router-dom";
 
 const Register = () => {
@@ -38,7 +38,7 @@ const Register = () => {
   const onSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:5000/api/auth/register", formData);
+      await api.post("/auth/register", formData);
       alert("Un e-mail de vérification a été envoyé.");
       navigate("/please-verify");
     } catch (err) {

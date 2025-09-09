@@ -15,7 +15,7 @@ import {
 import PersonIcon from "@mui/icons-material/Person";
 import PeopleIcon from "@mui/icons-material/People";
 import EventIcon from "@mui/icons-material/Event";
-import axios from "axios";
+import api from "../api";
 import { useNavigate } from "react-router-dom";
 import forumBanner from "../forum-banner.jpg";
 import logo1 from "../logo1.jpg";
@@ -41,7 +41,7 @@ const Home = () => {
       if (dayFilter) {
         params.day = dayFilter;
       }
-      const res = await axios.get("http://localhost:5000/api/workshops", {
+      const res = await api.get("/workshops", {
         params,
       });
       setWorkshops(res.data);
@@ -62,8 +62,8 @@ const Home = () => {
       return;
     }
     try {
-      await axios.post(
-        `http://localhost:5000/api/workshops/${workshopId}/register`,
+      await api.post(
+        `/api/workshops/${workshopId}/register`,
         {},
         { headers: { "x-auth-token": token } }
       );
